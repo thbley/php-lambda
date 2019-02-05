@@ -1,0 +1,49 @@
+#!/opt/bin/php
+<?php
+
+error_reporting(E_ALL);
+
+require __DIR__ . '/vendor/autoload.php';
+
+do {
+    $request = getNextRequest();
+
+    $handlerFunction = preg_replace('/[^a-zA-Z0-9_]+/', '', $_ENV['_HANDLER']);
+    require_once $_ENV['LAMBDA_TASK_ROOT'] . '/src/' . $handlerFunction . '.php';
+
+    $response = $handlerFunction($request);
+
+    sendResponse($request['invocationId'], $response);
+} while (true);
+
+function getNextRequest()
+{
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, 'http://' . $_ENV['AWS_LAMBDA_RUNTIME_API'] . '/2018-06-01/runtime/invocation/next');
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+    curl_setopt($ch, CURLOPT_HEADER, 1);
+
+    $response = curl_exec($ch);
+
+    $header_size = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
+    $header = substr($response, 0, $header_size);
+    $body = substr($response, $header_size);
+
+    curl_close($ch);
+
+    preg_match('/Lambda-Runtime-Aws-Request-Id: (.+)\r\n/', $header, $match);
+
+    return ['invocationId' => $match[1], 'payload' => json_decode($body, true)];
+}
+
+function sendResponse($invocationId, $response)
+{
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, 'http://' . $_ENV['AWS_LAMBDA_RUNTIME_API'] . '/2018-06-01/runtime/invocation/' . $invocationId . '/response');
+    curl_setopt($ch, CURLOPT_POST, 1);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
+    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($response));
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+    curl_exec($ch);
+    curl_close($ch);
+}
