@@ -27,6 +27,8 @@ aws lambda publish-layer-version \
     --layer-name php-vendor --region eu-central-1 \
     --zip-file fileb://vendor.zip
 
+zip hello.zip src/hello.php
+
 aws lambda create-function --function-name php-hello --handler hello \
     --runtime provided --region eu-central-1 \
     --zip-file fileb://hello.zip \
@@ -34,9 +36,6 @@ aws lambda create-function --function-name php-hello --handler hello \
     --layers "arn:aws:lambda:<given output from runtime zip upload>" \
                  "arn:aws:lambda:<given output from vendor zip upload" \
     --memory-size 128 --timeout 5
-
-
-zip hello.zip src/hello.php
 
 aws lambda update-function-code --function-name php-hello \
     --zip-file fileb://hello.zip \
