@@ -35,6 +35,7 @@ aws lambda create-function --function-name php-hello --handler hello \
     --role "arn:aws:iam::<given output from trust-policy upload>" \
     --layers "arn:aws:lambda:<given output from runtime zip upload>" \
                  "arn:aws:lambda:<given output from vendor zip upload" \
+                 "arn:aws:lambda:::awslayer:AmazonLinux1803" \
     --memory-size 128 --timeout 5
 
 aws lambda update-function-code --function-name php-hello \
@@ -62,3 +63,4 @@ sources:
 - https://tideways.com/profiler/blog/dodge-the-thundering-herd-with-file-based-opcache-in-php7
 - https://firecracker-microvm.github.io/
 - https://fosdem.org/2019/schedule/event/containers_firecracker/attachments/slides/3188/export/events/attachments/containers_firecracker/slides/3188/Firecracker_as_a_container_runtime_FOSDEM2019_4_3.pdf
+- https://aws.amazon.com/blogs/compute/upcoming-updates-to-the-aws-lambda-execution-environment/
